@@ -67,8 +67,17 @@ async function getChannelClaims() {
 Bun.serve({
     async fetch(req) {
         port: process.env.PORT || 3000;
-        
+
         const claims = await getChannelClaims();
-        return new Response(JSON.stringify(claims))
+        
+        if (req.url.includes('.json')) return new Response(JSON.stringify(claims))
+        else if (req.url.includes('.md')) {
+            claims.sort((a, b) => (parseInt(a.week) < parseInt(b.week)) ? 1 : -1)
+            let md = "";
+            claims.forEach(claim => {
+                md += `## Week #${claim.week}\nCreator of the week: [${claim.creator}](${claim.url.replace('lbry://', 'https://odysee.com/@cc:c4/').replace('#', ':')})\n`
+            })
+            return new Response(md);
+        }
     }
 })
